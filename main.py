@@ -8,7 +8,7 @@ Update: 2024-02-09 02:41:18
 Copyright (c) 2023-2024 by Hmily, All Rights Reserved.
 Function: Record live stream video.
 """
-
+import my_print  # 导入my_print模块，这将重写print函数
 import random
 import os
 import sys
@@ -57,10 +57,9 @@ from msg_push import dingtalk, xizhi, tg_bot
 
 version = "v3.0.1-beta"
 platforms = "抖音|TikTok|快手|虎牙|斗鱼|YY|B站|小红书|bigo直播|blued直播|AfreecaTV|网易CC|千度热播|pandaTV|猫耳FM"
-# --------------------------重写 prinit-------------------------------------
+# -------------------------- 自定义逻辑 -------------------------------------
 
-from my_pyfn import (init_builtins_print,is_ffmpeg_executable,install_ffmpeg)
-init_builtins_print()
+from in_ffmpeg import (is_ffmpeg_executable,install_ffmpeg)
 
 # --------------------------全局变量-------------------------------------
 recording = set()
