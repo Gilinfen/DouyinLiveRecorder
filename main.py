@@ -23,6 +23,7 @@ import json
 import re
 import shutil
 import signal
+import platform
 from typing import Any, Union
 
 from spider import (
@@ -56,6 +57,11 @@ from msg_push import dingtalk, xizhi, tg_bot
 
 version = "v3.0.1-beta"
 platforms = "抖音|TikTok|快手|虎牙|斗鱼|YY|B站|小红书|bigo直播|blued直播|AfreecaTV|网易CC|千度热播|pandaTV|猫耳FM"
+# --------------------------重写 prinit-------------------------------------
+
+from my_print import init_builtins_print
+init_builtins_print()
+
 # --------------------------全局变量-------------------------------------
 recording = set()
 unrecording = set()
@@ -1173,22 +1179,68 @@ def backup_file_start():
 
 
 # --------------------------检测是否存在ffmpeg-------------------------------------
-ffmepg_file_check = subprocess.getoutput("ffmpeg")
-if ffmepg_file_check.find("run") > -1:
-    # print("ffmpeg存在")
+def add_ffmpeg_to_path():
+    # 获取当前操作系统
+    os_name = platform.system()
+    current_directory = os.getcwd()
+
+    # 根据操作系统确定ffmpeg文件名
+    if os_name == "Windows":
+        ffmpeg_filename = "ffmpeg.exe"
+    elif os_name == "Darwin":  # macOS的系统名称
+        ffmpeg_filename = "ffmpeg"
+    else:
+        print("此脚本仅支持Mac和Windows")
+        sys.exit(1)
+
+    ffmpeg_full_path = os.path.join(current_directory, ffmpeg_filename)
+
+    # 检查ffmpeg文件是否存在于当前目录
+    if os.path.isfile(ffmpeg_full_path):
+        # 将包含ffmpeg的当前目录添加到环境变量PATH
+        os.environ["PATH"] += os.pathsep + current_directory
+        print(f"已将{ffmpeg_filename}添加到环境变量。")
+        return True
+    else:
+        return False
+
+def check_ffmpeg():
+    # 尝试运行ffmpeg来检查是否已在环境变量中
+    try:
+        subprocess.check_output(["ffmpeg", "-version"], stderr=subprocess.STDOUT)
+        return True  # ffmpeg已存在
+    except subprocess.CalledProcessError:
+        return False  # ffmpeg不在环境变量中
+    except FileNotFoundError:
+        return False  # ffmpeg未找到
+    
+def is_ffmpeg_executable():
+    """尝试运行ffmpeg命令来检测其是否可执行。"""
+    try:
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+    
+# 主逻辑
+if is_ffmpeg_executable():
+    # print("ffmpeg已存在，无需添加到环境变量。")
     pass
 else:
-    print("重要提示:")
-    input("检测到ffmpeg不存在,请将ffmpeg.exe放到同目录,或者设置为环境变量,没有ffmpeg将无法录制")
-    sys.exit(0)
+    if add_ffmpeg_to_path() and is_ffmpeg_executable():
+        print("已将当前目录下的ffmpeg添加到环境变量。")
+    else:
+        print("重要提示:")
+        input("检测到ffmpeg不存在，请将ffmpeg或ffmpeg.exe放到同目录，或者设置为环境变量。没有ffmpeg将无法执行相关操作。")
+        sys.exit(0)
 
-# --------------------------初始化程序-------------------------------------
-print("-----------------------------------------------------")
-print("|                DouyinLiveRecorder                 |")
-print("-----------------------------------------------------")
+# # --------------------------初始化程序-------------------------------------
+# print("-----------------------------------------------------")
+# print("|                DouyinLiveRecorder                 |")
+# print("-----------------------------------------------------")
 
 print(f"版本号：{version}")
-print("Github：https://github.com/ihmily/DouyinLiveRecorder")
+# print("Github：https://github.com/ihmily/DouyinLiveRecorder")
 print(f'支持平台：{platforms}')
 print('.....................................................')
 

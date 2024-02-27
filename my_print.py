@@ -10,6 +10,6 @@ def custom_print(*args, **kwargs):
     # 调用原始的print函数
     original_print(*args, **kwargs)
 
-# 将全局的print函数替换为自定义的print函数
-builtins.print = custom_print
-
+def init_builtins_print():
+    # 将全局的print函数替换为自定义的print函数
+    builtins.print = custom_print
