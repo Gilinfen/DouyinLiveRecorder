@@ -59,7 +59,7 @@ version = "v3.0.1-beta"
 platforms = "抖音|TikTok|快手|虎牙|斗鱼|YY|B站|小红书|bigo直播|blued直播|AfreecaTV|网易CC|千度热播|pandaTV|猫耳FM"
 # --------------------------重写 prinit-------------------------------------
 
-from my_print import init_builtins_print
+from my_pyfn import (init_builtins_print,is_ffmpeg_executable,install_ffmpeg)
 init_builtins_print()
 
 # --------------------------全局变量-------------------------------------
@@ -1179,60 +1179,30 @@ def backup_file_start():
 
 
 # --------------------------检测是否存在ffmpeg-------------------------------------
-def add_ffmpeg_to_path():
-    # 获取当前操作系统
-    os_name = platform.system()
-    current_directory = os.getcwd()
+import asyncio
 
-    # 根据操作系统确定ffmpeg文件名
-    if os_name == "Windows":
-        ffmpeg_filename = "ffmpeg.exe"
-    elif os_name == "Darwin":  # macOS的系统名称
-        ffmpeg_filename = "ffmpeg"
+# 假设 is_ffmpeg_executable, add_ffmpeg_to_path 是同步函数，而 install_ffmpeg 是异步函数
+# async def install_ffmpeg(): ...
+
+async def ffmpe_main():
+    if is_ffmpeg_executable():
+        # 如果 ffmpeg 已存在且可执行，则不需要进一步操作
+        pass
     else:
-        print("此脚本仅支持Mac和Windows")
-        sys.exit(1)
+        # 如果 ffmpeg 不可执行或不存在，尝试异步下载 ffmpeg
+        await install_ffmpeg()
+        
+        # 下载完成后检查 ffmpeg 是否可执行
+        if is_ffmpeg_executable():
+            print("已将当前目录下的ffmpeg添加到环境变量。")
+        else:
+            # 如果依然不可执行，则提示用户手动处理
+            print("重要提示:")
+            input("检测到ffmpeg不存在，请将ffmpeg或ffmpeg.exe放到同目录，或者设置为环境变量。没有ffmpeg将无法执行相关操作。")
+            sys.exit(0)
 
-    ffmpeg_full_path = os.path.join(current_directory, ffmpeg_filename)
-
-    # 检查ffmpeg文件是否存在于当前目录
-    if os.path.isfile(ffmpeg_full_path):
-        # 将包含ffmpeg的当前目录添加到环境变量PATH
-        os.environ["PATH"] += os.pathsep + current_directory
-        print(f"已将{ffmpeg_filename}添加到环境变量。")
-        return True
-    else:
-        return False
-
-def check_ffmpeg():
-    # 尝试运行ffmpeg来检查是否已在环境变量中
-    try:
-        subprocess.check_output(["ffmpeg", "-version"], stderr=subprocess.STDOUT)
-        return True  # ffmpeg已存在
-    except subprocess.CalledProcessError:
-        return False  # ffmpeg不在环境变量中
-    except FileNotFoundError:
-        return False  # ffmpeg未找到
-    
-def is_ffmpeg_executable():
-    """尝试运行ffmpeg命令来检测其是否可执行。"""
-    try:
-        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
-    
-# 主逻辑
-if is_ffmpeg_executable():
-    # print("ffmpeg已存在，无需添加到环境变量。")
-    pass
-else:
-    if add_ffmpeg_to_path() and is_ffmpeg_executable():
-        print("已将当前目录下的ffmpeg添加到环境变量。")
-    else:
-        print("重要提示:")
-        input("检测到ffmpeg不存在，请将ffmpeg或ffmpeg.exe放到同目录，或者设置为环境变量。没有ffmpeg将无法执行相关操作。")
-        sys.exit(0)
+# 运行主逻辑
+asyncio.run(ffmpe_main())
 
 # # --------------------------初始化程序-------------------------------------
 # print("-----------------------------------------------------")

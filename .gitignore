@@ -161,3 +161,5 @@ cython_debug/
 
 backup_config
 out
+
+.DS_Store
